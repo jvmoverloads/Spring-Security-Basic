@@ -1,0 +1,29 @@
+
+spring:
+#  gradle에 의존성 추가하면 기본으로 잡힘.
+#  mvc:
+#    view:
+#      prefix: /templates/
+#      suffix: .mustache
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: root
+    url: jdbc:mysql://localhost:3306/user?serverTimezone=UTC&characterEncoding=UTF-8
+
+  jpa:
+    open-in-view: true
+    hibernate:
+      ddl-auto: update
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+#        dialect: org.hibernate.dialect.MySQL8InnoDBDialect
+
+logging:
+  level:
+    org.hibernate.sql: debug
