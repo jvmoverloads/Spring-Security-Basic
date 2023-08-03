@@ -1,8 +1,7 @@
 package com.example.security2.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -11,6 +10,8 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Table(name = "users")
+@NoArgsConstructor
+@ToString
 public class User {
 
     @Id
@@ -29,7 +30,21 @@ public class User {
 
     private String role;
 
+    private String provider;
+    private String providerId;
+
     @CreationTimestamp
     private LocalDateTime createDate;
 //    private LocalDateTime lastLoginDate;
+
+
+    @Builder
+    public User(String email, String password, String name, String role, String provider, String providerId) {
+        this.email = email;
+        this.password = password;
+        this.name = name;
+        this.role = role;
+        this.provider = provider;
+        this.providerId = providerId;
+    }
 }

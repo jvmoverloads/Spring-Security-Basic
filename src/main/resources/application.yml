@@ -1,10 +1,16 @@
-
 spring:
-#  gradle에 의존성 추가하면 기본으로 잡힘.
-#  mvc:
-#    view:
-#      prefix: /templates/
-#      suffix: .mustache
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 574898903244-qrjp11vrbl3dh7alaneqman8odgao4fb.apps.googleusercontent.com
+            client-secret: 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
+            scope:
+              - email
+              - profile
+#              - openid
+#          facebook:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -22,7 +28,6 @@ spring:
     properties:
       hibernate:
         format_sql: true
-#        dialect: org.hibernate.dialect.MySQL8InnoDBDialect
 
 logging:
   level:

@@ -1,12 +1,15 @@
 package com.example.security2.auth;
 
 import com.example.security2.entity.User;
-import lombok.RequiredArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 시큐리티가 /login 주소 요청이 오면 낚아채서 로그인을 진행시킨다.
@@ -17,11 +20,29 @@ import java.util.List;
  *
  * Security Session => Authentication => UserDetails(PrincipalDetails)
  */
-@RequiredArgsConstructor
-public class PrincipalDetails implements UserDetails {
+@Getter
+@Setter
+public class PrincipalDetails implements UserDetails, OAuth2User {
 
     // composition
     private final User user;
+    private Map<String, Object> attributes;
+
+    // 일반 로그인
+    public PrincipalDetails(User user) {
+        this.user = user;
+    }
+
+    // OAuth 로그인
+    public PrincipalDetails(User user, Map<String, Object> attributes) {
+        this(user);
+        this.attributes = attributes;
+    }
+
+    @Override
+    public Map<String, Object> getAttributes() {
+        return attributes;
+    }
 
     // 해당 User의 권한을 리턴하는 곳!
     @Override
@@ -68,5 +89,10 @@ public class PrincipalDetails implements UserDetails {
          */
 
         return true;
+    }
+
+    @Override
+    public String getName() {
+        return (String) attributes.get("sub");
     }
 }

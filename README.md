@@ -13,6 +13,7 @@
 - 간단한 폼 로그인 구현위해 Mustache 사용 
   - 인덱스, 가입, 로그인 페이지로 구성(classpath:/templates/)
 - lombok 라이브러리 추가
+- spring-boot-starter-oauth2-client 라이브러리 추가
 
 ### 패키지 구조
 - auth
@@ -25,5 +26,9 @@
 - repository
   - UserRepository(JpaRepository 상속)
 
-### 발전방향
-- Oauth2.0 기반 구현
+### Oauth2.0
+- 구글
+  - https://console.cloud.google.com/ 개발자 센터 접속
+  - 프로젝트 생성 후 OAuth 2.0 클라이언트 Id 생성
+  - 승인된 리디렉션 URI: http://localhost:8080/login/oauth2/code/google path 고정
+  - 클라이언트ID, 보안 비밀번호 yml 설정 추가
