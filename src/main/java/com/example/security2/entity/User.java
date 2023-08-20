@@ -2,49 +2,38 @@ package com.example.security2.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDateTime;
+import java.util.Set;
 
 @Entity
 @Getter
 @Setter
-@Table(name = "users")
+@Table(name = "`user`")
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor
-@ToString
 public class User {
 
     @Id
+    @Column(name = "user_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long userId;
 
-    @Column(nullable = false, unique = true)
-    private String email;
+    @Column(length = 50, unique = true)
+    private String username;
 
-    @Column(nullable = false)
+    @Column(length = 100)
     private String password;
 
-    private String name;
+    @Column(length = 50)
+    private String nickname;
 
-    private Integer age;
+    private boolean activated;
 
-    private String role;
-
-    private String provider;
-    private String providerId;
-
-    @CreationTimestamp
-    private LocalDateTime createDate;
-//    private LocalDateTime lastLoginDate;
-
-
-    @Builder
-    public User(String email, String password, String name, String role, String provider, String providerId) {
-        this.email = email;
-        this.password = password;
-        this.name = name;
-        this.role = role;
-        this.provider = provider;
-        this.providerId = providerId;
-    }
+    @ManyToMany
+    @JoinTable(
+            name = "user_authority",
+            joinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "user_id")},
+            inverseJoinColumns = {@JoinColumn(name = "authority_name", referencedColumnName = "authority_name")})
+    private Set<Authority> authorities;
 }
