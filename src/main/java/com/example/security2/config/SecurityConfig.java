@@ -27,12 +27,6 @@ public class SecurityConfig {
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
-    /*private static final String[] WHITE_LIST = {
-            "/rest/api/v1/auth",
-            "/rest/api/v1/user/hello",
-            "/rest/api/v1/user/signup"
-    };*/
-
     public SecurityConfig(CorsFilter corsFilter, TokenProvider tokenProvider, JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint, JwtAccessDeniedHandler jwtAccessDeniedHandler) {
         this.corsFilter = corsFilter;
         this.tokenProvider = tokenProvider;
@@ -63,11 +57,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests((requests) -> requests
                     .requestMatchers(PathRequest.toH2Console()).permitAll()
                     .requestMatchers(
-                            new AntPathRequestMatcher("/rest/api/v1/auth"),
-                            new AntPathRequestMatcher("/rest/api/v1/user/hello"),
-                            new AntPathRequestMatcher("/rest/api/v1/user/signup")
+                            new AntPathRequestMatcher("/api/v1/auth"),
+                            new AntPathRequestMatcher("/api/v1/user/hello"),
+                            new AntPathRequestMatcher("/api/v1/user/signup")
                     ).permitAll()
-//                    .requestMatchers("/rest/api/v1/auth", "/rest/api/v1/user/hello", "/rest/api/v1/user/signup").permitAll()
                     .anyRequest().authenticated()
                 )
                 // enable h2 console
