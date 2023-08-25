@@ -1,7 +1,6 @@
 package com.example.security2.controller;
 
 import com.example.security2.dto.UserDto;
-import com.example.security2.entity.User;
 import com.example.security2.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
