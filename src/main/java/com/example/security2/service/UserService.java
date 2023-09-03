@@ -23,6 +23,7 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Transactional
     public UserDto signUp(UserDto userDto) {
         if (userRepository.findByUsername(userDto.getUsername()).orElse(null) != null)
             throw new DuplicateMemberException("이미 가입되어 있는 유저");
@@ -44,6 +45,9 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public UserDto getMyUserWithAuthorities() {
+        /*String findUsername = SecurityUtil.getCurrentUsername().stream().findFirst().orElseThrow(() -> new UsernameNotFoundException("Member not found"));
+        User user = userRepository.findByUsername(findUsername).orElseThrow(() -> new NotFoundMemberException("Member not found"));*/
+
         return UserDto.from(
                 SecurityUtil.getCurrentUsername()
                         .flatMap(userRepository::findByUsername)
