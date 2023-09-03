@@ -1,59 +1,75 @@
 package com.example.security2.config;
 
-import com.example.security2.oauth.PrincipalOauth2UserService;
+import com.example.security2.jwt.JwtAccessDeniedHandler;
+import com.example.security2.jwt.JwtAuthenticationEntryPoint;
+import com.example.security2.jwt.TokenProvider;
+import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.filter.CorsFilter;
 
 @Configuration
-@EnableWebSecurity // 스프링 필터체인에 등록
-@EnableMethodSecurity(securedEnabled = true, prePostEnabled = true)         // 권한 처리, Secured 어노테이션 활성화. preAuthorize, postAuthorize 어노테이션 활성화
+@EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
-    private final PrincipalOauth2UserService principalOauth2UserService;
+    private final CorsFilter corsFilter;
+    private final TokenProvider tokenProvider;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
-    public SecurityConfig(PrincipalOauth2UserService principalOauth2UserService) {
-        this.principalOauth2UserService = principalOauth2UserService;
+    public SecurityConfig(CorsFilter corsFilter, TokenProvider tokenProvider, JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint, JwtAccessDeniedHandler jwtAccessDeniedHandler) {
+        this.corsFilter = corsFilter;
+        this.tokenProvider = tokenProvider;
+        this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
+        this.jwtAccessDeniedHandler = jwtAccessDeniedHandler;
     }
-
-    // SecurityConfig <-> PrincipalOauth2UserService 순환참조로 인해 분리(PasswordConfig)
-    /*@Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }*/
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         // csrf, cors 일단 비활성화
-        http.csrf(AbstractHttpConfigurer::disable);
-        http.cors(AbstractHttpConfigurer::disable);
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+//                .cors(AbstractHttpConfigurer::disable)
 
-        http.authorizeHttpRequests((requests) -> requests
-                .requestMatchers("/user/**").authenticated()
-                .requestMatchers("/manager/**").access(
-                        new WebExpressionAuthorizationManager("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANAGER')")
+                .addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
+                // jwt 예외핸들러 등록
+                .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
+                        httpSecurityExceptionHandlingConfigurer
+                                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                                .accessDeniedHandler(jwtAccessDeniedHandler)
                 )
-                .requestMatchers("/admin/**").access(
-                        new WebExpressionAuthorizationManager("hasRole('ROLE_ADMIN')")
+
+                // 세션을 사용하지 않기 때문에 "STATELESS"로 설정
+                .sessionManagement(sessionManagementConfigurer ->
+                        sessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .anyRequest().permitAll())
-                .formLogin(form -> form
-                        .loginPage("/loginForm")
-                        .usernameParameter("email")
-                        .loginProcessingUrl("/login")
-                        .defaultSuccessUrl("/")
+
+                .authorizeHttpRequests((requests) -> requests
+                    .requestMatchers(PathRequest.toH2Console()).permitAll()
+                    .requestMatchers(
+                            new AntPathRequestMatcher("/api/v1/auth"),
+                            new AntPathRequestMatcher("/api/v1/user/hello"),
+                            new AntPathRequestMatcher("/api/v1/user/signup")
+                    ).permitAll()
+                    .anyRequest().authenticated()
                 )
-                .oauth2Login(oauth2 -> oauth2
-                        .loginPage("/loginForm")
-                        .userInfoEndpoint(userInfoEndpointConfig -> userInfoEndpointConfig
-                                .userService(principalOauth2UserService)
-                        )
-                );
+                // enable h2 console
+                .headers(header -> header
+                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
+                )
+
+                // JwtFilter 적용
+                .apply(new JwtSecurityConfig(tokenProvider));
 
         return http.build();
     }
